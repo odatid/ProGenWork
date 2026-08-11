@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "purpose": "ProGen Webプロト用の検証前提・軽量3Dモデルセット。URLはGitHub Pages上で公開後に利用する。",
+  "license": "CC0 1.0 (Kenney)",
+  "source_catalog": "https://kenney.nl/assets/category:3D",
+  "rules": [
+    "各GLBは同一オリジンの assets/kenney/ からだけ読み込む。",
+    "読込失敗時はキューブ・球・円柱・円錐による立体代替モデルへ切り替える。",
+    "生成AIにURLの検索・推測・創作をさせない。"
+  ],
+  "packs": [
+    {"id":"factory","name":"工場・ロボ","source":"https://kenney.nl/assets/factory-kit","models":["oopi.glb","machine.glb","conveyor.glb","robot-arm-a.glb","crane.glb","box-large.glb","screen-wide.glb"]},
+    {"id":"vehicles","name":"車・配達・レース","source":"https://kenney.nl/assets/car-kit","models":["race.glb","race-future.glb","delivery.glb","truck.glb","taxi.glb","cone.glb","ambulance.glb","tractor-shovel.glb"]},
+    {"id":"city","name":"工業都市・基地","source":"https://kenney.nl/assets/city-kit-industrial","models":["building-a.glb","building-e.glb","building-m.glb","chimney-large.glb","detail-tank.glb"]},
+    {"id":"dungeon","name":"ダンジョン・ファンタジー","source":"https://kenney.nl/assets/mini-dungeon","models":["character-human.glb","character-orc.glb","chest.glb","gate.glb","wall.glb","barrel.glb"]},
+    {"id":"forest","name":"森・探索","source":"https://kenney.nl/assets/mini-forest","models":["character-archer.glb","tree.glb","tree-high.glb","tent.glb","bridge.glb","rocks-high.glb"]},
+    {"id":"pets","name":"動物・ペット","source":"https://kenney.nl/assets/cube-pets","models":["animal-fish.glb","animal-dog.glb","animal-cat.glb","animal-bunny.glb","animal-fox.glb","animal-penguin.glb"]},
+    {"id":"space","name":"宇宙・SF","source":"https://kenney.nl/assets/modular-space-kit","models":["room-large.glb","corridor.glb","gate-lasers.glb","gate-door.glb","stairs.glb","cables.glb"]}
+  ]
+}
