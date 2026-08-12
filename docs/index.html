@@ -128,18 +128,32 @@ const state={step:0,games:[],bestGame:'',likedAxes:[],motifs:[],freeMotifs:['','
 
 // ---- 匿名診断利用ログ（Google Apps Script） ----
 const PROGEN_LOG_ENDPOINT='https://script.google.com/macros/s/AKfycbz_RDdAIxx9RhurnHu8D7nvu6Oh_9CV0kjanGfvk5fFZKwkIxTmSuGMAw9iQvWeapxV/exec';
-let diagnosisLogged=false;
+let lastDiagnosisLogSignature='';
 function getProGenSessionId(){let id=sessionStorage.getItem('progen_session_id');if(!id){id='pg_'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));sessionStorage.setItem('progen_session_id',id)}return id}
 function getProGenSource(){return new URLSearchParams(location.search).get('source')||'public'}
 function sendDiagnosisLog(){
-  if(diagnosisLogged||!state.games.length)return;
+  if(!state.games.length)return;
   const s=selected();if(!s)return;
-  const tops=topAxes(),a=s._addon||chooseAddon(s,state.selectedTrack);
+  const tops=topAxes(),scores=tasteScores(),a=s._addon||chooseAddon(s,state.selectedTrack);
   const motifs=[...state.motifs,...state.freeMotifs.filter(x=>x.trim())].slice(0,5);
   const games=[state.bestGame,...state.games.filter(g=>g!==state.bestGame)].filter(Boolean).slice(0,5);
-  const payload={session_id:getProGenSessionId(),tool_version:'3.1',source:getProGenSource(),favorite_game_1:games[0]||'',favorite_game_2:games[1]||'',favorite_game_3:games[2]||'',favorite_game_4:games[3]||'',favorite_game_5:games[4]||'',motif_1:motifs[0]||'',motif_2:motifs[1]||'',motif_3:motifs[2]||'',motif_4:motifs[3]||'',motif_5:motifs[4]||'',main_axis:tops[0]?.a||'',sub_axis:[tops[1]?.a,tops[2]?.a].filter(Boolean).join('・'),game_core:s.name,sub_rule:a.name,spec_id:s.id,result_title:ideaName({...s,_addon:a}),duration:String(s.hours+a.hours),device:/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'Smartphone':'PC'};
-  diagnosisLogged=true;
-  fetch(PROGEN_LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(()=>{diagnosisLogged=false});
+  const payload={
+    session_id:getProGenSessionId(),tool_version:'3.1',source:getProGenSource(),
+    favorite_game_1:games[0]||'',favorite_game_2:games[1]||'',favorite_game_3:games[2]||'',favorite_game_4:games[3]||'',favorite_game_5:games[4]||'',
+    motif_1:motifs[0]||'',motif_2:motifs[1]||'',motif_3:motifs[2]||'',motif_4:motifs[3]||'',motif_5:motifs[4]||'',
+    main_axis:tops[0]?.a||'',sub_axis:[tops[1]?.a,tops[2]?.a].filter(Boolean).join('・'),
+    game_core:s.name,sub_rule:a.name,spec_id:s.id,result_title:ideaName({...s,_addon:a}),duration:String(s.hours+a.hours),
+    device:/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'Smartphone':'PC',
+    experience_level:state.exp,
+    skill_move:state.skills.move?'1':'0',skill_collision:state.skills.collision?'1':'0',skill_code:state.skills.code?'1':'0',
+    goal:state.goal,selected_track:state.selectedTrack,
+    liked_axis_1:state.likedAxes[0]||'',liked_axis_2:state.likedAxes[1]||'',
+    axis_move:Number(scores[0].toFixed(1)),axis_collect:Number(scores[1].toFixed(1)),axis_growth:Number(scores[2].toFixed(1)),axis_explore:Number(scores[3].toFixed(1)),axis_battle:Number(scores[4].toFixed(1)),axis_reflex:Number(scores[5].toFixed(1)),axis_think:Number(scores[6].toFixed(1)),axis_manage:Number(scores[7].toFixed(1)),axis_create:Number(scores[8].toFixed(1)),axis_story:Number(scores[9].toFixed(1))
+  };
+  const signature=JSON.stringify(payload);
+  if(signature===lastDiagnosisLogSignature)return;
+  lastDiagnosisLogSignature=signature;
+  fetch(PROGEN_LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:signature}).catch(()=>{lastDiagnosisLogSignature=''});
 }
 
 const tabs=document.getElementById('tabs'),liveTracker=document.getElementById('liveTracker'),gameInputs=document.getElementById('gameInputs'),gameCounter=document.getElementById('gameCounter'),selectedGames=document.getElementById('selectedGames'),bestGameArea=document.getElementById('bestGameArea'),likedPointArea=document.getElementById('likedPointArea'),likedPointTitle=document.getElementById('likedPointTitle'),axisChoices=document.getElementById('axisChoices'),motifCounter=document.getElementById('motifCounter'),motifArea=document.getElementById('motifArea'),free1=document.getElementById('free1'),free2=document.getElementById('free2'),expChoices=document.getElementById('expChoices'),expMore=document.getElementById('expMore'),goalChoices=document.getElementById('goalChoices'),tasteSummary=document.getElementById('tasteSummary'),axisChart=document.getElementById('axisChart'),safeList=document.getElementById('safeList'),stretchList=document.getElementById('stretchList'),effort=document.getElementById('effort'),promptPlan=document.getElementById('promptPlan'),promptImage=document.getElementById('promptImage'),promptCode=document.getElementById('promptCode');
@@ -174,7 +188,7 @@ function updateLiveTracker(){if(state.step===0||state.step===6){liveTracker.styl
 function motifLabel(){return [...state.motifs,...state.freeMotifs.filter(x=>x.trim())].join('・')||'自由な題材'}
 function ideaName(st){const m=state.motifs[0]||state.freeMotifs.find(x=>x.trim())||'オリジナル';const a=st._addon||chooseAddon(st,state.selectedTrack);return `${m} × ${st.name} ＋ ${a.name}`}
 function renderRec(list,track){return list.map((s,i)=>{const a=s._addon||chooseAddon(s,track);return `<div class="rec ${state.selectedStructure===s.id&&state.selectedTrack===track?'selected':''}" onclick="selectRec('${s.id}','${track}')"><h4>第${i+1}位　${ideaName({...s,_addon:a})}</h4><div class="meta">骨格：${s.name} ／ 副ルール：${a.name} ／ 工数：約${s.hours+a.hours}時間</div><div class="reason">${s.core}</div></div>`}).join('')}
-function selectRec(id,track){state.selectedStructure=id;state.selectedTrack=track;renderResults()}
+function selectRec(id,track){state.selectedStructure=id;state.selectedTrack=track;renderResults();sendDiagnosisLog()}
 function renderResultsIfNeeded(){if(state.step===5)renderResults()}
 function motifProfile(){
   const a=state.motifs.map(m=>MOTIF_META[m]).filter(Boolean);if(!a.length)return {d3:'中',visual:'中',oc:'○'};
