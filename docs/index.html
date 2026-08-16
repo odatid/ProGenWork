@@ -35,6 +35,7 @@
 .bestBtn{border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer}
 .bestBtn.on{background:#ffedd5;border-color:#ea580c;color:#9a3412;box-shadow:0 0 0 1px #ea580c inset}
 @media(max-width:600px){.gameCard{font-size:.76rem;padding:7px 8px}.gameCategoryBlock{padding:10px}}
+.shareCta{margin:32px 0 10px;padding:24px;border-radius:18px;background:linear-gradient(135deg,#312e81,#4f46e5 58%,#0891b2);color:#fff;text-align:center;box-shadow:0 12px 28px rgba(67,56,202,.24)}.shareCta h2{font-size:1.22rem;margin:0 0 5px}.shareCta p{margin:0 0 14px;font-size:.87rem;color:#e0e7ff}.shareCta a{display:inline-flex;align-items:center;justify-content:center;min-width:250px;padding:14px 22px;border-radius:12px;background:#fff;color:#3730a3;text-decoration:none;font-size:1rem;font-weight:900;box-shadow:0 3px 0 #c7d2fe}.shareCta a:hover{transform:translateY(-1px);background:#f8fafc}@media(max-width:560px){.shareCta{padding:20px 14px}.shareCta a{width:100%;min-width:0}}
 </style>
 </head>
 <body><div class="wrap">
@@ -55,6 +56,7 @@
 <section id="p5" class="panel"><div class="card"><div class="grid2"><div><h2>あなたのゲーム嗜好</h2><p class="lead">10軸全部を平均化せず、中心になる遊びを3つまで取り出します。</p><div id="tasteSummary" class="summary"></div><div id="axisChart" class="axisbox" style="margin-top:14px"></div></div><div><h2>企画候補</h2><p class="lead">「今の条件で安全」と「少し背伸び」の2系統を出します。</p><div class="recgrid"><div class="reccol safe"><b>今の条件で作りやすい</b><div id="safeList"></div></div><div class="reccol stretch"><b>少し勉強すれば作れそう</b><div id="stretchList"></div></div></div></div></div><div id="effort" style="margin-top:16px"></div><div class="actions"><button class="btn sub" onclick="go(4)">戻る</button><button class="btn primary" onclick="go(6)">AI用プロンプトへ</button></div></div></section>
 
 <section id="p6" class="panel"><div class="card"><h2>AI用プロンプト</h2><p class="lead">このツール自体は生成AIのAPIを使いません。診断DBからプロンプトを作り、同じ生成AIチャットで順番に使います。</p><div class="warn" style="margin-bottom:14px"><b>おすすめ手順：</b> ①DB診断をもとに企画書を生成 → ②その企画書をもとにゲーム画面イメージ生成 → ③企画書と画面イメージをもとにWebプロト生成</div><div class="prompt"><h3>1. ゲーム企画仕様概要書を生成</h3><textarea id="promptPlan" readonly></textarea><button class="btn sub copy" onclick="copyText('promptPlan',this)">コピー</button></div><div class="prompt"><h3>2. 直前の企画書からゲーム画面イメージを生成</h3><textarea id="promptImage" readonly></textarea><button class="btn sub copy" onclick="copyText('promptImage',this)">コピー</button></div><div class="prompt"><h3>3. 企画書＋ゲーム画面イメージからWebプロト生成</h3><textarea id="promptCode" readonly></textarea><button class="btn sub copy" onclick="copyText('promptCode',this)">コピー</button></div><div class="actions"><button class="btn sub" onclick="go(5)">戻る</button></div></div></section>
+<section class="shareCta" aria-label="作ったゲームを共有する"><h2>作ったゲームをシェアする</h2><p>完成したWebゲームをアップロードして、みんなに遊んでもらおう。</p><a href="https://supple-games.deca.jp/tidoc-game-upload/upload.html" target="_blank" rel="noopener">ゲームをシェアする　↗</a></section>
 </div>
 <script>
 const SHEETS_ID='1qYgv8fREJ3lfSnP7Hjqa-rh-JMwacLw7W2AIFV5OkFs';
@@ -165,7 +167,12 @@ function radarSvg(scores){const size=220,c=size/2,r=76,levels=4,mx=Math.max(...s
 function updateLiveTracker(){if(state.step===0||state.step===6){liveTracker.style.display='none';return}liveTracker.style.display='block';const scores=tasteScores(),tops=topAxes();liveTracker.innerHTML=`<div class="miniTitle">遊びの10軸</div><div class="miniSub">主軸 <b>${tops[0].a}</b> ／ 副軸 ${tops[1].a}・${tops[2].a}</div><div class="radarFrame"><div>${radarSvg(scores)}</div><div><div class="axisLegend">${RADAR_AXES.map(a=>`<span>${a}</span>`).join('')}</div><div class="miniSub">ゲームやネタを選ぶたびにリアルタイムで変化します。</div></div></div>`}
 function motifLabel(){return [...state.motifs,...state.freeMotifs.filter(x=>x.trim())].join('・')||'自由な題材'}
 function ideaName(st){const m=state.motifs[0]||state.freeMotifs.find(x=>x.trim())||'オリジナル';const a=st._addon||chooseAddon(st,state.selectedTrack);return `${m} × ${st.name} ＋ ${a.name}`}
-function renderRec(list,track){return list.map((s,i)=>{const a=s._addon||chooseAddon(s,track);return `<div class="rec ${state.selectedStructure===s.id&&state.selectedTrack===track?'selected':''}" onclick="selectRec('${s.id}','${track}')"><h4>第${i+1}位　${ideaName({...s,_addon:a})}</h4><div class="meta">骨格：${s.name} ／ 副ルール：${a.name} ／ 工数：約${s.hours+a.hours}時間</div><div class="reason">${s.core}</div></div>`}).join('')}
+function mobileStatusFor(s){
+  // マウス照準・複雑な3D視点操作が中心のものはOCではPC試遊に寄せる。
+  const desktopOnly=['S36','S37','S43','S45','S46','S47','S48'];
+  return desktopOnly.includes(s.id)?'スマホ非対応（PC推奨）':'スマホ対応';
+}
+function renderRec(list,track){return list.map((s,i)=>{const a=s._addon||chooseAddon(s,track),mobile=mobileStatusFor(s);return `<div class="rec ${state.selectedStructure===s.id&&state.selectedTrack===track?'selected':''}" onclick="selectRec('${s.id}','${track}')"><h4>第${i+1}位　${ideaName({...s,_addon:a})}</h4><div class="meta">骨格：${s.name} ／ 副ルール：${a.name} ／ 工数：約${s.hours+a.hours}時間 ／ ${mobile}</div><div class="reason">${s.core}</div></div>`}).join('')}
 function selectRec(id,track){state.selectedStructure=id;state.selectedTrack=track;renderResults()}
 function renderResultsIfNeeded(){if(state.step===5)renderResults()}
 function motifProfile(){
@@ -237,6 +244,7 @@ function commonSpec(){const s=selected(),tops=topAxes(),a=s._addon||chooseAddon(
 基本工数目安: 約${s.hours+a.hours}時間
 必要技術: ${[...s.tech,...a.tech].join('・')}
 スコープ削減候補: ${s.cut}
+スマホ対応: ${mobileStatusFor(s)}
 
 【ゲームルールに必要なUI】
 ・${uiSpecFor(s)}
@@ -281,7 +289,8 @@ ${spec}
 ・HTML/CSS/JavaScriptを1つのHTMLにまとめる。2DはCanvas API、実モデルURLがある3D企画はThree.js＋GLTFLoaderを使う。外部URLを勝手に検索・推測・創作しない。
 ・${assetGuide}
 ・指定URLのGLBは主役・敵・背景のいずれかに実際に読み込む。読込失敗時は、上記のポリゴン代替モデルへ切り替え、ゲームを停止させない。
-・スマホで操作できるゲームは必ずスマホ対応にする。PCはキーボード／マウス、スマホはタップ／スワイプまたは画面内の大きな操作ボタンを使い、片手でも試遊できる配置にする。レスポンシブ。
+・企画書の「スマホ対応」が対応なら、必ずスマホ対応にする。PCはキーボード／マウス、スマホはタップ／スワイプまたは画面内の大きな操作ボタンを使い、片手でも試遊できる配置にする。レスポンシブ。スマホ非対応なら、画面内操作ボタンは作らずPC向けとして完成させる。
+・フレームレート差でゲーム速度が変わらないようにする。移動・重力・アニメーション・敵出現・タイマーは「1秒あたり」の値で管理し、requestAnimationFrameのデルタタイム（dt）を掛けて更新する。dtは大きくなりすぎないよう約0.033秒で上限を設ける。フレーム数をそのまま速度や時間に使わない。PCの60/120/144Hzとスマホで同じ操作感になることを優先する。
 ・TITLE → PLAY → CLEAR/GAMEOVER → RETRY のみ。
 ・敵1〜2種、武器1〜2種、1画面または短い1ステージ。機能を増やしすぎない。
 ・企画書で決めたHP、時間、スコア、弾数、目標、レーダー等のUIだけ実装する。
@@ -299,6 +308,7 @@ ${actionFeelGuide?`・${actionFeelGuide}\n`:''}
 ・イベント登録は1回だけ。RETRYではゲーム状態だけ完全リセット。
 ・START前、PLAY中、終了後、RETRY後にConsoleエラーを出さない。
 ・不安定になる高度な演出や機能は削ってよい。
+・処理落ちから復帰しても自機が大きくワープせず、タイマーや敵が急加速しない。
 
 【チューニング】
 コード冒頭にTUNINGを置き、速度・敵頻度・制限時間・得点・HP・演出量など主要5〜8項目だけ、日本語コメント付きでまとめる。
