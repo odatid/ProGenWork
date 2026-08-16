@@ -213,6 +213,10 @@ function assetGuideFor(s=selected()){
   return `${models?`ProGen許可素材セット：${a.name}。Kenney CC0の実モデルは下記URLだけ使用可。\n${models}\nURLを検索・推測・創作しない。URL未登録の役割は ${a.fallback}`:`ProGen許可素材セット：${a.name}。実モデルURLは未登録。URLを推測・創作せず、${a.fallback}`}${guard?'\n'+guard:''}`;
 }
 function modelGuideFor(s){const m={S07:'2D横スクロールアクション。左右移動・ジャンプ・踏みつけ／回避で進む。地面、段差、頭上の足場を描き、主役・敵・収集物を題材らしい形にする。横へ進むほど背景のレイヤーがゆっくり流れるパララックスを入れる。',S09:'ボール＝球体。床＝厚みのある板。障害物＝キューブ・円柱・円錐を組み合わせる。',S20:'探索対象＝キューブ・球・円柱を組み合わせた立体小物。壁・床・扉に厚みを持たせる。',S36:'部屋＝床・壁・天井を立体の板で組み、異変の小物はキューブ・球・円柱で作る。',S37:'被写体＝球・円柱・円錐を組み合わせた立体生物・小物。',S41:'自機＝球体またはキューブを組み合わせた立体キャラクター。収集物＝発光球。足場＝厚みのある板。',S42:'自機＝球・キューブ・円錐を組み合わせた立体キャラクター。障害物＝円柱・キューブ・円錐。',S43:'戦車＝箱車体＋円柱砲塔＋細い円柱砲身＋球車輪。遮蔽物＝積み上げキューブ＋円柱バリケード。ブルドーザーやトラクターを戦車に見立てない。',S44:'車＝箱車体＋円柱車輪＋板の窓。建物・ゲートも立体キューブで構成。',S45:'探索対象＝球・円柱・キューブを組み合わせた立体小物。部屋・扉・家具に厚みを持たせる。',S46:'迷路の壁・床・柱を厚みのあるキューブで構成。目印も立体形状にする。',S47:'ロボット＝箱胴体＋円柱の手足＋球の関節＋発光する目。',S48:'的＝円柱台座＋球・円錐のターゲット。背景・遮蔽物も立体キューブで作る。'};return m[s.id]||''}
+function actionFeelGuideFor(s){
+  if(s?.id!=='S07')return '';
+  return '【2Dアクションの操作感】横移動は速すぎず、加速・減速を滑らかにする。ジャンプは横幅2〜3キャラ分を越えられる高さと距離を初期値にする。落下後約0.1秒のジャンプ猶予（コヨーテタイム）と、着地直前の入力予約を入れる。着地時は短い押しつぶし→戻り、土煙・小粒子、弱い画面揺れを入れる。走行時は上下の小さなバウンス、方向転換時は少し傾きを付ける。難しすぎる初期速度・硬い即停止・連続落下を避け、家庭用2Dアクションとして気持ちよく操作できるテンポにする。';
+}
 function visualDirectionFor(s){
   if(/3D|一人称|戦車|ロボット|ドライブ/.test(s.name+s.view)) return '立体感を優先。遠近感、影、床面、奥行きのある背景、カメラワークで3Dらしさを明確にする。';
   if(/固定UI|カード|管理|パズル/.test(s.view+s.name)) return 'UIそのものをゲーム画面の魅力にする。カード、パネル、ゲージ、アイコンを整然とデザインする。';
@@ -239,7 +243,7 @@ function commonSpec(){const s=selected(),tops=topAxes(),a=s._addon||chooseAddon(
 
 【ビジュアル方針】
 ${visualDirectionFor(s)}`}
-function renderPrompts(){const s=selected();if(!s)return;const spec=commonSpec();let assetGuide='ProGen素材セットを使う。個別の3DモデルURLが未登録なら、キューブ・球・円柱・円錐・厚みのある板を組み合わせて立体モデルを作る。';try{assetGuide=assetGuideFor(s)}catch(e){console.warn('素材セットの読込を省略し、ポリゴン代替モデルを使います。',e)}let modelGuide='';try{modelGuide=modelGuideFor(s)}catch(e){console.warn('3D構成ガイドの読込を省略します。',e)}
+function renderPrompts(){const s=selected();if(!s)return;const spec=commonSpec();let assetGuide='ProGen素材セットを使う。個別の3DモデルURLが未登録なら、キューブ・球・円柱・円錐・厚みのある板を組み合わせて立体モデルを作る。';try{assetGuide=assetGuideFor(s)}catch(e){console.warn('素材セットの読込を省略し、ポリゴン代替モデルを使います。',e)}let modelGuide='';try{modelGuide=modelGuideFor(s)}catch(e){console.warn('3D構成ガイドの読込を省略します。',e)}let actionFeelGuide='';try{actionFeelGuide=actionFeelGuideFor(s)}catch(e){console.warn('2Dアクション操作感ガイドを省略します。',e)}
 promptPlan.value=`あなたはゲーム会社の企画ディレクターです。以下の診断原案を、初心者でも完成可能で見栄えのするゲーム企画にしてください。既存ゲームの模倣ではなく、10軸・モチーフ・副ルールを使って短いオリジナル企画にしてください。
 
 【診断原案】
@@ -277,11 +281,12 @@ ${spec}
 ・HTML/CSS/JavaScriptを1つのHTMLにまとめる。2DはCanvas API、実モデルURLがある3D企画はThree.js＋GLTFLoaderを使う。外部URLを勝手に検索・推測・創作しない。
 ・${assetGuide}
 ・指定URLのGLBは主役・敵・背景のいずれかに実際に読み込む。読込失敗時は、上記のポリゴン代替モデルへ切り替え、ゲームを停止させない。
-・PCキーボード／マウスとスマホのタップ／スワイプ対応。レスポンシブ。
+・スマホで操作できるゲームは必ずスマホ対応にする。PCはキーボード／マウス、スマホはタップ／スワイプまたは画面内の大きな操作ボタンを使い、片手でも試遊できる配置にする。レスポンシブ。
 ・TITLE → PLAY → CLEAR/GAMEOVER → RETRY のみ。
 ・敵1〜2種、武器1〜2種、1画面または短い1ステージ。機能を増やしすぎない。
 ・企画書で決めたHP、時間、スコア、弾数、目標、レーダー等のUIだけ実装する。
 ・3D企画は2Dパネルや板ポリだけで済ませない。${modelGuide} 実モデルURLがない役割は、キューブ・球・円柱・円錐・厚みのある板の組み合わせで作る。床、光、影、遠近感を必ず入れる。
+${actionFeelGuide?`・${actionFeelGuide}\n`:''}
 
 【見た目】
 ・四角が動くだけは禁止。Canvas図形・絵文字・簡易アイコンで題材らしい形にする。
