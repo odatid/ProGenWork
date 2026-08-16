@@ -313,12 +313,13 @@ ${actionFeelGuide?`・${actionFeelGuide}\n`:''}
 コード冒頭にTUNINGを置き、速度・敵頻度・制限時間・得点・HP・演出量など主要5〜8項目だけ、日本語コメント付きでまとめる。
 
 【出力】
-説明は不要。省略のない完成HTMLコードを1つだけ出力する。
+説明文なしで、完成HTMLコードを1つだけ出力する。
 
 【HTML出力形式】
-・回答の最初の文字は必ず <!DOCTYPE html>、最後の文字は必ず </html> にする。
-・Markdownのコード囲み、説明文、見出し、ファイル名、前置き、後書きを一切出力しない。
-・HTML以外の文字列を先頭・末尾へ付けない。保存時にそのまま .html ファイルとして開ける完全な1ファイルにする。`;
+・完成コード全体を html 指定のMarkdownコードブロック1つで囲む。コードブロックの外には説明文を書かない。
+・コードブロック内の最初は必ず <!DOCTYPE html>、最後は必ず </html> にする。
+・途中のHTML断片、差分、擬似コード、\"以下を追加\"は絶対に出力しない。
+・長くなりそうなら演出・敵・ステージを削ってコードを短くし、必ず最後まで閉じた完全な1ファイルを出力する。`;
 }
 async function copyText(id,btn){const el=document.getElementById(id);try{await navigator.clipboard.writeText(el.value)}catch(e){el.select();document.execCommand('copy')}const old=btn.textContent;btn.textContent='コピー完了';setTimeout(()=>btn.textContent=old,1400)}
 window.ProGenRecommendationAPI={version:'3.1',recommend(input){const x=recommendationLists(input);const pack=a=>a.map(s=>({id:s.id,name:s.name,family:s.family,dimension:s.dimension,view:s.view,hours:s.hours,fit:Number(s._fit.toFixed(3))}));return {safe:pack(x.safe),stretch:pack(x.stretch),tops:x.tops}}};
