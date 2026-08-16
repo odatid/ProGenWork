@@ -55,8 +55,7 @@
 
 <section id="p5" class="panel"><div class="card"><div class="grid2"><div><h2>あなたのゲーム嗜好</h2><p class="lead">10軸全部を平均化せず、中心になる遊びを3つまで取り出します。</p><div id="tasteSummary" class="summary"></div><div id="axisChart" class="axisbox" style="margin-top:14px"></div></div><div><h2>企画候補</h2><p class="lead">「今の条件で安全」と「少し背伸び」の2系統を出します。</p><div class="recgrid"><div class="reccol safe"><b>今の条件で作りやすい</b><div id="safeList"></div></div><div class="reccol stretch"><b>少し勉強すれば作れそう</b><div id="stretchList"></div></div></div></div></div><div id="effort" style="margin-top:16px"></div><div class="actions"><button class="btn sub" onclick="go(4)">戻る</button><button class="btn primary" onclick="go(6)">AI用プロンプトへ</button></div></div></section>
 
-<section id="p6" class="panel"><div class="card"><h2>AI用プロンプト</h2><p class="lead">このツール自体は生成AIのAPIを使いません。診断DBからプロンプトを作り、同じ生成AIチャットで順番に使います。</p><div class="warn" style="margin-bottom:14px"><b>おすすめ手順：</b> ①DB診断をもとに企画書を生成 → ②その企画書をもとにゲーム画面イメージ生成 → ③企画書と画面イメージをもとにWebプロト生成</div><div class="prompt"><h3>1. ゲーム企画仕様概要書を生成</h3><textarea id="promptPlan" readonly></textarea><button class="btn sub copy" onclick="copyText('promptPlan',this)">コピー</button></div><div class="prompt"><h3>2. 直前の企画書からゲーム画面イメージを生成</h3><textarea id="promptImage" readonly></textarea><button class="btn sub copy" onclick="copyText('promptImage',this)">コピー</button></div><div class="prompt"><h3>3. 企画書＋ゲーム画面イメージからWebプロト生成</h3><textarea id="promptCode" readonly></textarea><button class="btn sub copy" onclick="copyText('promptCode',this)">コピー</button></div><div class="actions"><button class="btn sub" onclick="go(5)">戻る</button></div></div></section>
-<section class="shareCta" aria-label="作ったゲームを共有する"><h2>作ったゲームをシェアする</h2><p>完成したWebゲームをアップロードして、みんなに遊んでもらおう。</p><a href="https://supple-games.deca.jp/tidoc-game-upload/upload.html" target="_blank" rel="noopener">ゲームをシェアする　↗</a></section>
+<section id="p6" class="panel"><div class="card"><h2>AI用プロンプト</h2><p class="lead">このツール自体は生成AIのAPIを使いません。診断DBからプロンプトを作り、同じ生成AIチャットで順番に使います。</p><div class="warn" style="margin-bottom:14px"><b>おすすめ手順：</b> ①DB診断をもとに企画書を生成 → ②その企画書をもとにゲーム画面イメージ生成 → ③企画書と画面イメージをもとにWebプロト生成</div><div class="prompt"><h3>1. ゲーム企画仕様概要書を生成</h3><textarea id="promptPlan" readonly></textarea><button class="btn sub copy" onclick="copyText('promptPlan',this)">コピー</button></div><div class="prompt"><h3>2. 直前の企画書からゲーム画面イメージを生成</h3><textarea id="promptImage" readonly></textarea><button class="btn sub copy" onclick="copyText('promptImage',this)">コピー</button></div><div class="prompt"><h3>3. 企画書＋ゲーム画面イメージからWebプロト生成</h3><textarea id="promptCode" readonly></textarea><button class="btn sub copy" onclick="copyText('promptCode',this)">コピー</button></div><section class="shareCta" aria-label="作ったゲームを共有する"><h2>作ったゲームをシェアする</h2><p>完成したWebゲームをアップロードして、みんなに遊んでもらおう。</p><a href="https://supple-games.deca.jp/tidoc-game-upload/upload.html" target="_blank" rel="noopener">ゲームをシェアする　↗</a></section><div class="actions"><button class="btn sub" onclick="go(5)">戻る</button></div></div></section>
 </div>
 <script>
 const SHEETS_ID='1qYgv8fREJ3lfSnP7Hjqa-rh-JMwacLw7W2AIFV5OkFs';
@@ -314,7 +313,12 @@ ${actionFeelGuide?`・${actionFeelGuide}\n`:''}
 コード冒頭にTUNINGを置き、速度・敵頻度・制限時間・得点・HP・演出量など主要5〜8項目だけ、日本語コメント付きでまとめる。
 
 【出力】
-説明は不要。省略のない完成HTMLコードを1つだけ出力する。`;
+説明は不要。省略のない完成HTMLコードを1つだけ出力する。
+
+【HTML出力形式】
+・回答の最初の文字は必ず <!DOCTYPE html>、最後の文字は必ず </html> にする。
+・Markdownのコード囲み、説明文、見出し、ファイル名、前置き、後書きを一切出力しない。
+・HTML以外の文字列を先頭・末尾へ付けない。保存時にそのまま .html ファイルとして開ける完全な1ファイルにする。`;
 }
 async function copyText(id,btn){const el=document.getElementById(id);try{await navigator.clipboard.writeText(el.value)}catch(e){el.select();document.execCommand('copy')}const old=btn.textContent;btn.textContent='コピー完了';setTimeout(()=>btn.textContent=old,1400)}
 window.ProGenRecommendationAPI={version:'3.1',recommend(input){const x=recommendationLists(input);const pack=a=>a.map(s=>({id:s.id,name:s.name,family:s.family,dimension:s.dimension,view:s.view,hours:s.hours,fit:Number(s._fit.toFixed(3))}));return {safe:pack(x.safe),stretch:pack(x.stretch),tops:x.tops}}};
